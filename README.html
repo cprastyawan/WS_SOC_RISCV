@@ -1,0 +1,485 @@
+<h1 id="workshop-soc-mriscv">Workshop SoC MRISCV</h1>
+<p>Oleh Nur Cahyo Ihsan Prastyawan<br>Rabu, 15 Oktober 2025</p>
+<h2 id="1-pendahuluan">1. Pendahuluan</h2>
+<p>Workshop ini diadakan untuk menguji model yang telah dibuat sejauh ini. Fokus utama dari workshop ini adalah menguji core MRISCV yang dibuat oleh Universidad Industrial de Santander (UIS) untuk dijadikan core pada SoC tipe mikrokontroler yang ingin dibuat. Panduan ini berisi langkah - langkah untuk mereplikasi sistem yang telah dilakukan sebelumnya.</p>
+<h2 id="2-alat-dan-bahan">2. Alat dan Bahan</h2>
+<h3 id="software">Software</h3>
+<ol>
+<li>Xilinx Vivado</li>
+<li>Xilinx Vitis IDE</li>
+<li>Serial Viewer (PuTTY, Arduino Serial Monitor, RealTerm)</li>
+</ol>
+<h3 id="hardware">Hardware</h3>
+<ol>
+<li>Board FPGA</li>
+<li>USB UART</li>
+<li>Winbond W25Q128</li>
+</ol>
+<h2 id="3-langkah---langkah">3. Langkah - langkah</h2>
+<h3 id="membuat-project-baru">Membuat Project Baru</h3>
+<ol>
+<li><p>Buka aplikasi Xilinx Vivado
+ <img src="documentation/imgs/0001_buka_vivado.png" alt="alt text"></p>
+<blockquote>
+<p>Versi Xilinx Vivado yang digunakan adalah 2024.2
+ </p>
+</blockquote>
+</li>
+<li><p>Klik Create New Project..., lalu klik Next
+<img src="documentation/imgs/0002_create_new_project.png" alt="Project Baru"></p>
+<blockquote>
+<p>Digunakan untuk membuat project baru</p>
+</blockquote>
+</li>
+<li><p>Beri nama dan lokasi project, lalu klik Next
+ <img src="documentation/imgs/0003_nama_project.png" alt="Nama Project"></p>
+<blockquote>
+<p>Nama yang digunakan adalah workshop_soc_mriscv dengan lokasi project berada pada Vivado/Projects/</p>
+</blockquote>
+</li>
+<li><p>Pilih tipe project seperti pada gambar, lalu klik Next
+ <img src="documentation/imgs/0004_tipe_project.png" alt="Tipe Project">  </p>
+</li>
+<li><p>Pilih Parts/Boards yang dipakai, lalu klik Next
+ <img src="documentation/imgs/0005_pilih_boards.png" alt="Pilih Boards"></p>
+<blockquote>
+<p>Boards/Part yang digunakan adalah Antminer S9 Board yang menggunakan chip Xilinx XC7Z010</p>
+</blockquote>
+</li>
+<li><p>Klik Finish
+ <img src="documentation/imgs/0006_project_summary.png" alt="Project Summary"></p>
+</li>
+<li><p>Tampilan Project Manager 
+ <img src="documentation/imgs/0007_project_manager.png" alt="Project Summary"></p>
+</li>
+<li><p>Pada tab sources, klik kanan pada Design Sources lalu pilih Add Sources
+ <img src="documentation/imgs/0008_add_sources.png" alt="Add Sources"></p>
+</li>
+<li><p>Pilih add or create design sources
+ <img src="documentation/imgs/0009_add_sources_1.png" alt="Add Sources"></p>
+</li>
+<li><p>Pilih add directories
+<img src="documentation/imgs/0010_add_directories.png" alt="Add Directories"></p>
+</li>
+<li><p>Pilih lokasi pada folder workshop_mriscv/rtl, lalu klik Select
+<img src="documentation/imgs/0011_lokasi_directories.png" alt="Lokasi directory"></p>
+</li>
+<li><p>Klik Finish
+<img src="documentation/imgs/0012_pilih_directories.png" alt="Lokasi directory"></p>
+</li>
+<li><p>Pada tab IP Integrator, klik Create Block Design
+<img src="documentation/imgs/0013_create_block_design.png" alt="Membuat block design"></p>
+</li>
+<li><p>Beri nama pada block design yang ingin dibuat, lalu pilih OK
+<img src="documentation/imgs/0014_nama_bd.png" alt="Nama block design"></p>
+</li>
+<li><p>Tampilan Block Design akan muncul lalu klik Add IP 
+<img src="documentation/imgs/0015_add_ip.png" alt="Add IP"></p>
+</li>
+<li><p>Ketik Microblaze V pada nama pencarian lalu Klik Microblaze V
+<img src="documentation/imgs/0016_ip_mblazev.png" alt="IP Microblaze V"></p>
+</li>
+<li><p>Klik Run Block Automation
+<img src="documentation/imgs/0017_mblazev.png" alt="Block Automation"></p>
+</li>
+<li><p>Atur opsi seperti pada gambar, lalu klik OK
+<img src="documentation/imgs/0018_mblaze_block_automation.png" alt="Microblaze V Options"></p>
+</li>
+<li><p>Berikut tampilan Block Microblaze V
+<img src="documentation/imgs/0019_mblaze_block.png" alt="Microblaze V Options"></p>
+</li>
+</ol>
+<h3 id="menambahkan-ip-dari-vivado">Menambahkan IP dari Vivado</h3>
+<ol start="20">
+<li>Tambahkan IP beserta options-nya sebagai berikut:</li>
+</ol>
+<ul>
+<li>1 AXI Smartconnect
+  <img src="documentation/imgs/0032_smartconnect.png" alt="AXI Smartconnect"></li>
+<li>1 AXI BRAM Controller
+  <img src="documentation/imgs/0022_bram_controller.png" alt="AXI BRAM Ctrl"></li>
+<li>1 Block Memory Generator
+  <img src="documentation/imgs/0031_blk_mem_gen.png" alt="Blk Mem Gen"></li>
+<li>2 AXI GPIO<ul>
+<li>GPIO0
+<img src="documentation/imgs/0020_gpio0.png" alt="GPIO 0"></li>
+<li>GPIO1
+<img src="documentation/imgs/0021_gpio1.png" alt="GPIO 1"></li>
+</ul>
+</li>
+<li>1 AXI Uartlite
+<img src="documentation/imgs/0023_axi_uartlite.png" alt="AXI Uartlite"></li>
+<li>1 AXI Quad SPI
+  <img src="documentation/imgs/0026_axi_quad_spi.png" alt="AXI Quad SPI 0"></li>
+<li>2 ILA<ul>
+<li>ILA0
+  <img src="documentation/imgs/0027_ila0.png" alt="ILA0"></li>
+<li>ILA1
+  <img src="documentation/imgs/0028_ila1.png" alt="ILA1"></li>
+</ul>
+</li>
+<li>2 Slice<ul>
+<li>Slice0
+<img src="documentation/imgs/0024_slice0.png" alt="Slice 0"></li>
+<li>Slice1 
+<img src="documentation/imgs/0025_slice1.png" alt="Slice 1"></li>
+</ul>
+</li>
+<li>1 Constant
+  <img src="documentation/imgs/0029_constant.png" alt="Constant"></li>
+<li>1 Processor System Reset
+  <img src="documentation/imgs/0030_psr.png" alt="Processor System Reset"></li>
+</ul>
+<ol start="21">
+<li>Hasil Board Design setelah ditambahkan seluruh IP
+<img src="documentation/imgs/0033_ip_bd.png" alt="Board Design IP"></li>
+</ol>
+<h3 id="menambahkan-module">Menambahkan module</h3>
+<ol start="22">
+<li><p>Klik kanan pada tampilan board design, lalu klik Add Module
+<img src="documentation/imgs/0034_add_module.png" alt="Add Module"></p>
+</li>
+<li><p>Cari module mriscvcore, lalu klik OK
+<img src="documentation/imgs/0035_add_mriscvcore.png" alt="Add Module MRISCVCORE"></p>
+</li>
+<li><p>Ulangi langkah menambahkan module untuk modul berikut:</p>
+<ul>
+<li>spi_mux<blockquote>
+<p>Module Multiplexer SPI (mux untuk AXI Quad SPI dan AXI_SPI_XIP_W25QXX)</p>
+</blockquote>
+</li>
+<li>axi_spi_xip_w25qxx<blockquote>
+<p>Module AXI SPI dengan mode XIP untuk menjalankan program pada winbond flash memory</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>Hasil Board Design setelah ditambahkan module
+<img src="documentation/imgs/0036_module_done.png" alt="Board Design Module"></p>
+</li>
+</ol>
+<h3 id="menyambungkan-antar-modul">Menyambungkan antar modul</h3>
+<ol start="26">
+<li>Pada modul Microblaze V, klik kiri dan tahan pada port M_AXI_DP lalu geser hingga menuju modul AXI Smartconnect. Lalu sambungkan ke port S00_AXI
+<img src="documentation/imgs/0037_module_wiring.png" alt="Module wiring"></li>
+<li>Ulangi langkah yang sama sehingga wiring sama dengan <a href="documentation/pdfs/wiring_bd.pdf">file berikut</a></li>
+</ol>
+<h3 id="mengatur-port-external">Mengatur Port External</h3>
+<ol start="28">
+<li><p>Klik kanan pada port UART dari AXI Uartlite
+<img src="documentation/imgs/0050_uartlite_make_external.png" alt="AXI Uartlite External"></p>
+</li>
+<li><p>Makan tampilan AXI Uartlite menjadi seperti pada gambar
+<img src="documentation/imgs/0051_uartlite_tampilan_external.png" alt="AXI Uartlite With External Port"></p>
+</li>
+<li><p>Ulangi Hal tersebut pada Port yang ditunjukkan pada tabel</p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="center">Module</th>
+<th align="center">Port</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"></td>
+<td align="center">ext_sck</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">ext_ss</td>
+</tr>
+<tr>
+<td align="center">SPI Mux</td>
+<td align="center">ext_mosi</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">ext_miso</td>
+</tr>
+<tr>
+<td align="center">GPIO0</td>
+<td align="center">GPIO</td>
+</tr>
+</tbody></table>
+<ol start="31">
+<li>Hasil dari port external ditunjukkan pada gambar
+<img src="documentation/imgs/0052_port_external_result.png" alt="AXI Uartlite With External Port"></li>
+</ol>
+<h3 id="menambahkan-clock">Menambahkan clock</h3>
+<h4 id="untuk-fpga-dengan-zynq7-processing-system">Untuk FPGA dengan Zynq7 Processing System</h4>
+<ol start="28">
+<li>Tambahkan IP Zynq7 Processing System
+<img src="documentation/imgs/0038_zynq7_ps.png" alt="Processing System"></li>
+<li>Klik pada Run Block Automation, lalu atur opsi seperti pada gambar
+<img src="documentation/imgs/0039_zynq7_block_automation.png" alt="PS Options"></li>
+<li>Klik dua kali pada module Zynq7, lalu pada PS-PL Configuration hapus
+centang pada GP Master AXI Interface-&gt;M_AXI_GP0 Interface
+<img src="documentation/imgs/0040_zynq7_options.png" alt="Uncheck GP Master AXI"></li>
+<li>Pada tab Clock Configurations, ubah konfigurasi seperti pada gambar, lalu klik OK
+<img src="documentation/imgs/0041_clock_configurations.png" alt="Clock Configurations"></li>
+<li>Tampilan Zynq7 Processing System
+<img src="documentation/imgs/0042_tampilan_zynq7.png" alt="Tampilan PS"></li>
+<li>Hubungkan port yang akan dijelaskan pada tabel berikut</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="center">Zynq7 PS</th>
+<th align="center">Port Module</th>
+<th align="center">Module</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">FCLK_CLK0</td>
+<td align="center">Microblaze V</td>
+<td align="center">Clk</td>
+</tr>
+<tr>
+<td align="center">FCLK_CLK1</td>
+<td align="center">ILA0 dan ILA1</td>
+<td align="center">clk</td>
+</tr>
+<tr>
+<td align="center">FCLK_RESET0_N</td>
+<td align="center">Processor System Reset</td>
+<td align="center">ext_reset_in</td>
+</tr>
+</tbody></table>
+<ol start="34">
+<li>Hasil block design tampak seperti pada gambar
+<img src="documentation/imgs/0044_wiring_1.png" alt="Block Design PS7"></li>
+</ol>
+<h4 id="untuk-fpga-tanpa-zynq7-processing-system">Untuk FPGA tanpa Zynq7 Processing System</h4>
+<ol start="28">
+<li>Tambahkan IP Clocking Wizard
+<img src="documentation/imgs/0045_clock_wizard.png" alt="Clock Wizard"></li>
+<li>Klik dua kali lalu pada Clocking Options, ganti options seperti pada Gambar
+<img src="documentation/imgs/0046_clock_wizard_2.png" alt="Clocking Options"></li>
+<li>Hubungkan port yang akan dijelaskan pada tabel berikut</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="center">Clocking Wizard</th>
+<th align="center">Port Module</th>
+<th align="center">Module</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">clk_out1</td>
+<td align="center">Microblaze V</td>
+<td align="center">Clk</td>
+</tr>
+<tr>
+<td align="center">clk_out2</td>
+<td align="center">ILA0 dan ILA1</td>
+<td align="center">clk</td>
+</tr>
+</tbody></table>
+<ol start="31">
+<li><p>Hasil block design dengan IP Clocking Wizard
+<img src="documentation/imgs/0047_clock_wizard_done.png" alt="Block Design Clocking Wizard"></p>
+</li>
+<li><p>Klik kanan pada port clk_in1 dari Clocking Wizard
+<img src="documentation/imgs/0048_clk_in1_ext.png" alt="clk_in1"></p>
+</li>
+<li><p>Ulangi juga pada port resetn dari Clocking Wizard sehingga tampilan menjadi seperti pada gambar.
+<img src="documentation/imgs/0049_resetn_ext.png" alt="resetn"></p>
+</li>
+</ol>
+<h3 id="memberikan-alamat-untuk-setiap-module-axi">Memberikan alamat untuk setiap module AXI</h3>
+<ol start="35">
+<li><p>Buka tab address editor
+   <img src="documentation/imgs/0053_address_editor.png" alt="Address Editor"></p>
+</li>
+<li><p>Klik kanan lalu klik Assign All
+   <img src="documentation/imgs/0053_assign_all.png" alt="Assign All"></p>
+</li>
+<li><p>Module AXI yang telah ditetapkan alamatnya ditunjukkan pada gambar
+<img src="documentation/imgs/0053_assigned_address.png" alt="Assigned Address"></p>
+</li>
+<li><p>Ganti semua address dan size-nya sesuai dengan gambar
+<img src="documentation/imgs/0054_axi_address.png" alt="Address"></p>
+</li>
+</ol>
+<h3 id="reset-pin-dan-validate-design">Reset Pin dan Validate Design</h3>
+<ol start="39">
+<li><p>Buka tab Block Design, lalu pada module Microblaze RISC-V Local Memory klik tanda &#39;+&#39;. Klik kanan pada pin LMB_Rst/SYS_Rst. Klik Make Connection
+<img src="documentation/imgs/0054_blk_mem_rst.png" alt="Make Connection"></p>
+</li>
+<li><p>Pilih pin bus_struct_reset
+<img src="documentation/imgs/0055_mb_rst.png" alt="mb_reset"></p>
+<blockquote>
+<p>Hubungkan juga Debug_SYS_Rst pada Microblaze Debug Module (MDM) V dengan mb_debug_sys_rst pada Processor System Reset</p>
+</blockquote>
+</li>
+<li><p>Pada tab Design, Klik kanan pada design lalu klik Validate Design
+<img src="documentation/imgs/0056_validate_design.png" alt="Validate Design"></p>
+</li>
+<li><p>Pastikan pada proses validate design tidak terdapat error atau critical warning
+<img src="documentation/imgs/0057_no_error_warnings_validation.png" alt="Validate Design no error or warning"></p>
+</li>
+</ol>
+<h3 id="membuat-hdl-wrapper-dan-generate-block-design">Membuat HDL wrapper dan generate block design</h3>
+<ol start="44">
+<li><p>Pada tab Sources, klik kanan pada design lalu klik Create HDL Wrapper...
+<img src="documentation/imgs/0058_membuat_wrapper.png" alt="HDL Wrapper"></p>
+</li>
+<li><p>Pilih opsi seperti pada gambar
+<img src="documentation/imgs/0059_membuat_wrapper_auto_update.png" alt="HDL Wrapper Auto Manage"></p>
+</li>
+<li><p>Klik kanan pada HDL wrapper yang telah dibuat, lalu pilih Set as Top
+<img src="documentation/imgs/0060_make_top_level.png" alt="HDL Wrapper Top Level"></p>
+</li>
+<li><p>Klik Generate Block Design
+<img src="documentation/imgs/0061_gen_blk_design.png" alt="Generate Block Design"></p>
+</li>
+<li><p>Klik Generate
+<img src="documentation/imgs/0062_gen_blk_design_generate.png" alt="Generate"></p>
+</li>
+</ol>
+<h3 id="menambahkan-constraints">Menambahkan constraints</h3>
+<ol start="49">
+<li><p>Pada Tab Sources, klik kanan pada folder Constraints lalu klik Add Sources...
+<img src="documentation/imgs/0063_add_constraints.png" alt="Add Constraints"></p>
+</li>
+<li><p>Pilih opsi Add or Create Constraints
+<img src="documentation/imgs/0064_add_constraints_options.png" alt="Add or Create Constraints"></p>
+</li>
+<li><p>Klik Add Files
+<img src="documentation/imgs/0064_add_constraints_add_files.png" alt="Add or Create Constraints"></p>
+</li>
+<li><p>File constraints terletak pada direktori constraints.
+<img src="documentation/imgs/0065_dir_constraints.png" alt="Directory Constraints"></p>
+</li>
+<li><p>Klik Finish
+<img src="documentation/imgs/0066_constraints_finish.png" alt="Constraints Finish"></p>
+</li>
+<li><p>Klik kanan pada file constraints yang telah ditambahkan, klik Set as Target Constraint File
+<img src="documentation/imgs/0067_constraints_set_as_target.png" alt="Target Constraints"></p>
+</li>
+<li><p>Edit Constraints dan sesuaikan dengan port/pin board yang digunakan
+<img src="documentation/imgs/0093_edit_constraints.png" alt="Edit Constraints"></p>
+</li>
+</ol>
+<h3 id="generate-bistream">Generate Bistream</h3>
+<ol start="55">
+<li>Klik Generate Bitstream
+<img src="documentation/imgs/0067_generate_bitstream.png" alt="Generate Bitstream"></li>
+<li>Klik OK untuk membuat file bitstream
+<img src="documentation/imgs/0068_generate_bitstream_window.png" alt="Generate Bitstream"></li>
+<li>Tunggu hingga muncul pesan seperti pada gambar, lalu pilih opsi View Reports dan klik OK
+<img src="documentation/imgs/0069_generate_bitstream_done.png" alt="Generate Bitstream Done"></li>
+<li>Klik tab File-&gt;Export-&gt;Export Hardware...
+<img src="documentation/imgs/0070_export_hardware.png" alt="Export Hardware"></li>
+<li>Klik OK
+<img src="documentation/imgs/0071_export_hardware_1.png" alt="Export Hardware"></li>
+<li>Pilih opsi Include Bitstream
+<img src="documentation/imgs/0072_include_bitstream.png" alt="Include Bitstream"></li>
+<li>Pilih nama dan lokasi dari hardware yang ingin diekspor
+<img src="documentation/imgs/0073_lokasi_xsa.png" alt="Include Bitstream"></li>
+<li>Klik Finish
+<img src="documentation/imgs/0074_xsa_finish.png" alt="Include Bitstream"></li>
+</ol>
+<h3 id="vitis-ide-membuat-platform-component">Vitis IDE (Membuat Platform Component)</h3>
+<ol start="63">
+<li><p>Buka Vitis Unified IDE
+<img src="documentation/imgs/0075_vitis_ide.png" alt="Vitis Unified IDE"></p>
+</li>
+<li><p>Klik Set Workspace...
+<img src="documentation/imgs/0076_set_workspace.png" alt="Set Workspace"></p>
+</li>
+<li><p>Cari lokasi folder project Vivado, lalu buatlah folder dengan nama software. Klik Select Folder
+<img src="documentation/imgs/0077_workspace_location.png" alt="Workspace Location"></p>
+</li>
+<li><p>Klik Create Platform Component
+<img src="documentation/imgs/0078_ceate_platform_component.png" alt="Platform Component"></p>
+</li>
+<li><p>Beri platform nama platform-riscv
+<img src="documentation/imgs/0079_platform_riscv.png" alt="Platform RISCV"></p>
+</li>
+<li><p>Klik Browse lalu pilih file .xsa yang sebelumnya telah dibuat menggunakan software Vivado. Lalu klik Next
+<img src="documentation/imgs/0080_xsa_implementation.png" alt="XSA Implementation"></p>
+</li>
+<li><p>Pilih Standalone pada opsi Operating System dan microblaze riscv pada opsi Processor
+<img src="documentation/imgs/0081_select_os_processor.png" alt="Operating System and Processor"></p>
+</li>
+<li><p>Klik Finish
+<img src="documentation/imgs/0082_riscv_summary.png" alt="Summary"></p>
+</li>
+</ol>
+<h3 id="vitis-ide-membuat-application-component">Vitis IDE (Membuat Application Component)</h3>
+<ol start="71">
+<li><p>Klik tab File-&gt;New Component-&gt;Application
+<img src="documentation/imgs/0083_application_component.png" alt="Application Component"></p>
+</li>
+<li><p>Beri nama app_loader_mriscv, lalu klik Next
+<img src="documentation/imgs/0084_application_name.png" alt="Application Name"></p>
+</li>
+<li><p>Pilih platform-riscv, lalu klik Next
+<img src="documentation/imgs/0085_platform_riscv.png" alt="Platform RISCV"></p>
+</li>
+<li><p>Pilih standalone_microblaze_riscv, lalu klik Next
+<img src="documentation/imgs/0086_domain.png" alt="Domain"></p>
+</li>
+<li><p>Pilih Add Files
+<img src="documentation/imgs/0087_add_files.png" alt="Add Files"></p>
+</li>
+<li><p>Pilih semua files yang berada pada folder software
+<img src="documentation/imgs/0087_add_files_done.png" alt="Add Files"></p>
+</li>
+<li><p>Klik Finish lalu tunggu hingga selesai
+<img src="documentation/imgs/0088_summary.png" alt="Finish"></p>
+</li>
+</ol>
+<h3 id="langkah-tambahan-untuk-pengguna-fpga-dengan-zynq7-ps">Langkah Tambahan untuk Pengguna FPGA dengan Zynq7 PS</h3>
+<ol>
+<li><p>Ulangi proses yang sama untuk membuat Platform. Perhatikan gambar Summary yang menunjukkan opsi apa saja yang harus disesuaikan
+<img src="documentation/imgs/0091_platform_arm.png" alt="Summary Platform ARM"></p>
+</li>
+<li><p>Ulangi proses yang sama untuk membuat Application. Perhatikan gambar Summary yang menunjukkan opsi apa saja yang harus disesuaikan
+<img src="documentation/imgs/0092_application_arm.png" alt="Summary Application ARM"></p>
+</li>
+<li><p>Build dan Run application yang telah dibuat sebelum menjalankan application app_loader_mriscv
+<img src="documentation/imgs/0093_application_arm_build_and_run.png" alt="Build and Run"></p>
+</li>
+</ol>
+<h3 id="build-dan-run-application">Build dan Run Application</h3>
+<ol start="79">
+<li><p>Klik Build untuk mengkompilasi kode program, lalu tunggu hingga selesai
+<img src="documentation/imgs/0089_build_app.png" alt="Build"></p>
+</li>
+<li><p>Klik Run untuk menjalankan program
+<img src="documentation/imgs/0090_run_app.png" alt="Run"></p>
+</li>
+<li><p>Lihat output LED dan Serial melalui program Serial</p>
+</li>
+</ol>
+<h3 id="hasil">Hasil</h3>
+<ol>
+<li>Output UART Serial
+<img src="documentation/imgs/0094_hasil_uart.png" alt="UART Serial">
+<img src="documentation/imgs/0094_hasil_uart_2.png" alt="UART Serial 2"></li>
+</ol>
+<h3 id="kompilasi-programh">Kompilasi Program.h</h3>
+<h4 id="software-yang-dibutuhkan">Software yang dibutuhkan</h4>
+<ol>
+<li>Windows Subsystem Linux</li>
+<li>xPacks Dev Tools <a href="https://xpack-dev-tools.github.io/docs/getting-started/">Guide</a></li>
+<li>Make</li>
+</ol>
+<h4 id="langkah---langkah">Langkah - Langkah</h4>
+<ol>
+<li>Buka folder firmware
+<img src="documentation/imgs/0095_lokasi_firmware.png" alt="Folder firmware"></li>
+<li>Klik kanan lalu klik Open In Terminal
+<img src="documentation/imgs/0096_open_in_terminal.png" alt="Open In Terminal"></li>
+<li>Ketik wsl lalu tekan Enter untuk masuk ke dalam environment WSL
+<img src="documentation/imgs/0096_open_wsl.png" alt="Open WSL"></li>
+<li>Ketik make all untuk mengkompilasi file program.h
+<img src="documentation/imgs/0097_make_all.png" alt="Make all"></li>
+<li>File program.h otomatis terkompilasi
+<img src="documentation/imgs/0097_program.h.png" alt="Program.h"></li>
+</ol>
