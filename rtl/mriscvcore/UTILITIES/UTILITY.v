@@ -17,7 +17,7 @@ module UTILITY(
     output reg    is_inst);
 
     reg [63:0] N_CYCLE=0,N_INSTRUC=0,REAL_TIME=0;
-    reg [31:0] TIME=0,rd_n=0,PC_N=0,PC_N2=0,RD_DATA=0;
+    reg [31:0] TIME=0,rd_n=0,PC_N=0,PC_N2=32'h00000000,RD_DATA=0;
     wire [31:0] PC_BRANCH, PC_SALTOS, PC_ORIG;
 
     // RDCYCLE REGISTER
@@ -99,7 +99,7 @@ module UTILITY(
     // PC sync
     always @(posedge clk)
         begin    
-            if (rst == 1'b0) PC_N2<=0;
+            if (rst == 1'b0) PC_N2<=32'h00000000;
             else if(enable_pc) PC_N2 <= PC_N ;
         end
     assign pc = PC_N2;

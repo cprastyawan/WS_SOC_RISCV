@@ -5,12 +5,12 @@ module MEMORY_INTERFACE(
     input resetn,
     input [31:0] rs1,
     input [31:0] rs2,
-    input [31:0] Rdata_mem,
-    input ARready,
-    input Rvalid,
-    input AWready,
-    input Wready,
-    input Bvalid,
+    input [31:0] rdata_mem,
+    input arready,
+    input rvalid,
+    input awready,
+    input wready,
+    input bvalid,
     input [31:0] imm, 
     input [1:0] W_R,
     input [1:0] wordsize,
@@ -21,18 +21,18 @@ module MEMORY_INTERFACE(
     output reg busy, 
     output reg done,
     output reg align, 
-    output reg [31:0] AWdata,
-    output reg [31:0] ARdata,
+    output reg [31:0] awaddr,
+    output reg [31:0] araddr,
     output reg [31:0] Wdata,
     output [31:0] rd,
     output reg [31:0] inst,
-    output reg ARvalid,
-    output reg RReady,
-    output reg AWvalid,
-    output reg Wvalid,
+    output reg arvalid,
+    output reg rready,
+    output reg awvalid,
+    output reg wvalid,
     output reg [2:0] arprot,
     output reg [2:0] awprot,
-    output reg Bready,
+    output reg bready,
     output reg [3:0] Wstrb,
     output reg rd_en
     //output reg [3:0] Rstrb
@@ -41,7 +41,7 @@ module MEMORY_INTERFACE(
     
     reg [15:0] relleno16;
     reg [23:0] relleno24;
-    reg [31:0] Rdataq,Wdataq;
+    reg [31:0] rdataq,Wdataq;
     reg [3:0] Wstrbq;
     reg [31:0] rdu;
     reg en_instr;
@@ -64,11 +64,11 @@ module MEMORY_INTERFACE(
     
     // Next state and output logic
     always @* begin
-        ARvalid    = 1'b0;
-        RReady     = 1'b0;
-        AWvalid    = 1'b0;
-        Wvalid    = 1'b0;
-        Bready    = 1'b0;
+        arvalid    = 1'b0;
+        rready     = 1'b0;
+        awvalid    = 1'b0;
+        wvalid    = 1'b0;
+        bready    = 1'b0;
         busy    = 1'b0;
         en_read = 1'b0;
         nexstate = state;
@@ -77,33 +77,33 @@ module MEMORY_INTERFACE(
                 reposo : begin
                     // If reading or gathering instructions?
                     if ( (W_R[1]==1'b1 || W_R==2'b01) && enable==1'b1 ) begin
-                        ARvalid    = 1'b1;     // Pre-issue the ARvalid
-                        RReady = 1'b1;      // There is no problem if this is issued since before
-                        if(ARready && Rvalid) begin en_read = 1'b1; busy = 1'b0; end     // In the same cycle sync read
-                        else if(ARready && !Rvalid) begin nexstate = SR2; busy = 1'b1; end // Wait for Rvalid
+                        arvalid    = 1'b1;     // Pre-issue the arvalid
+                        rready = 1'b1;      // There is no problem if this is issued since before
+                        if(arready && rvalid) begin en_read = 1'b1; busy = 1'b0; end     // In the same cycle sync read
+                        else if(arready && !rvalid) begin nexstate = SR2; busy = 1'b1; end // Wait for rvalid
                         else begin nexstate = SR1; busy = 1'b1; end
                     // If writing?
                     end else if (W_R==2'b00 && enable==1'b1) begin
-                        AWvalid    = 1'b1;     // Pre-issue AWvalid
-                        Wvalid = 1'b1;      // Pre-issue Wvalid
-                        Bready = 1'b1;      // There is no problem if this is issued since before
-                        if(!AWready && !Wready) begin                    nexstate = SW0; busy = 1'b1;
-                        end else if(AWready && !Wready) begin            nexstate = SW1; busy = 1'b1;
-                        end else if(!AWready && Wready) begin            nexstate = SW2; busy = 1'b1;
-                        end else if(AWready && Wready && !Bvalid) begin  nexstate = SWB; busy = 1'b1;
-                        end //else if(AWready && Wready && Bvalid)  // Action not necesary
+                        awvalid    = 1'b1;     // Pre-issue awvalid
+                        wvalid = 1'b1;      // Pre-issue wvalid
+                        bready = 1'b1;      // There is no problem if this is issued since before
+                        if(!awready && !wready) begin                    nexstate = SW0; busy = 1'b1;
+                        end else if(awready && !wready) begin            nexstate = SW1; busy = 1'b1;
+                        end else if(!awready && wready) begin            nexstate = SW2; busy = 1'b1;
+                        end else if(awready && wready && !bvalid) begin  nexstate = SWB; busy = 1'b1;
+                        end //else if(awready && wready && bvalid)  // Action not necesary
                     end else begin
                         nexstate = reposo;
                     end
                 end
 
                 SR1 : begin
-                    RReady = 1'b1;
-                    ARvalid    = 1'b1;
-                    if(ARready && Rvalid) begin
+                    rready = 1'b1;
+                    arvalid    = 1'b1;
+                    if(arready && rvalid) begin
                         en_read = 1'b1;     // In the same cycle sync read
                         nexstate = reposo;
-                    end else if(ARready && !Rvalid) begin
+                    end else if(arready && !rvalid) begin
                         nexstate = SR2;
                         busy = 1'b1;
                     end else begin
@@ -113,8 +113,8 @@ module MEMORY_INTERFACE(
                 end
 
                 SR2 : begin
-                    RReady = 1'b1;
-                    if(Rvalid) begin
+                    rready = 1'b1;
+                    if(rvalid) begin
                         en_read = 1'b1;     // In the same cycle sync read
                         nexstate = reposo;
                     end else begin
@@ -124,19 +124,19 @@ module MEMORY_INTERFACE(
                 end
 
                 SW0 : begin
-                    AWvalid = 1'b1;
-                    Wvalid = 1'b1;
-                    Bready = 1'b1;      // There is no problem if this is issued since before
-                    if(AWready && !Wready) begin
+                    awvalid = 1'b1;
+                    wvalid = 1'b1;
+                    bready = 1'b1;      // There is no problem if this is issued since before
+                    if(awready && !wready) begin
                         nexstate = SW1;
                         busy = 1'b1;
-                    end else if(!AWready && Wready) begin             
+                    end else if(!awready && wready) begin             
                         nexstate = SW2;
                         busy = 1'b1;
-                    end else if(AWready && Wready && !Bvalid) begin  
+                    end else if(awready && wready && !bvalid) begin  
                         nexstate = SWB;
                         busy = 1'b1;
-                    end else if(AWready && Wready && Bvalid) begin   
+                    end else if(awready && wready && bvalid) begin   
                         nexstate = reposo;
                     end else begin
                         nexstate = SW0;
@@ -145,13 +145,13 @@ module MEMORY_INTERFACE(
                 end
 
                 SW1 : begin
-                    //AWvalid = 1'b1;
-                    Wvalid = 1'b1;
-                    Bready = 1'b1;      // There is no problem if this is issued since before
-                    if (Wready && !Bvalid) begin
+                    //awvalid = 1'b1;
+                    wvalid = 1'b1;
+                    bready = 1'b1;      // There is no problem if this is issued since before
+                    if (wready && !bvalid) begin
                         nexstate=SWB;
                         busy = 1'b1;
-                    end else if(Wready && Bvalid) begin
+                    end else if(wready && bvalid) begin
                         nexstate=reposo;
                     end else begin
                         nexstate=SW1;
@@ -160,13 +160,13 @@ module MEMORY_INTERFACE(
                 end
 
                 SW2 : begin
-                    AWvalid = 1'b1;
-                    //Wvalid = 1'b1;
-                    Bready = 1'b1;      // There is no problem if this is issued since before
-                    if (AWready && !Bvalid) begin
+                    awvalid = 1'b1;
+                    //wvalid = 1'b1;
+                    bready = 1'b1;      // There is no problem if this is issued since before
+                    if (awready && !bvalid) begin
                         nexstate=SWB;
                         busy = 1'b1;
-                    end else if(AWready && Bvalid) begin
+                    end else if(awready && bvalid) begin
                         nexstate=reposo;
                     end else begin
                         nexstate=SW2;
@@ -175,8 +175,8 @@ module MEMORY_INTERFACE(
                 end
             
                 SWB : begin
-                    Bready = 1'b1;
-                    if (Bvalid) begin
+                    bready = 1'b1;
+                    if (bvalid) begin
                         nexstate=reposo;
                     end else begin
                         nexstate=SWB;
@@ -207,13 +207,13 @@ module MEMORY_INTERFACE(
         en_instr     = 0;
         rd_en        = 0;
         awprot       = 3'b000;
-        AWdata       = rs1+imm;
+        awaddr       = rs1+imm;
         arprot       = 3'b000;
-        ARdata       = rs1+imm;
+        araddr       = rs1+imm;
         align        = 1;
         Wdataq       = 0;
         Wstrbq       = 4'b0000;
-        Rdataq       = 0;
+        rdataq       = 0;
         relleno16    = 0;
         relleno24    = 0;
         
@@ -221,21 +221,21 @@ module MEMORY_INTERFACE(
             2'b00  : begin
                 en_instr = 0;
                 awprot = 3'b000;
-                AWdata = rs1+imm;
+                awaddr = rs1+imm;
                 case (wordsize)
                     2'b10  : begin
-                        if(enable) align=(AWdata[1:0]==2'b00)? 1:0;
+                        if(enable) align=(awaddr[1:0]==2'b00)? 1:0;
                         Wdataq=rs2;
                         Wstrbq=4'b1111;
                     end
                     2'b01  : begin
-                        if(enable) align=(AWdata[0]==1'b0)? 1:0;
-                        Wstrbq = AWdata[1] ? 4'b1100 : 4'b0011;
+                        if(enable) align=(awaddr[0]==1'b0)? 1:0;
+                        Wstrbq = awaddr[1] ? 4'b1100 : 4'b0011;
                         Wdataq={2{rs2[15:0]}};
                     end
                     2'b00  : begin
                         align=1;
-                        Wstrbq = 4'b0001 << ARdata[1:0];
+                        Wstrbq = 4'b0001 << araddr[1:0];
                         Wdataq={4{rs2[7:0]}};
                     end
                 endcase                        
@@ -243,8 +243,8 @@ module MEMORY_INTERFACE(
 
             2'b10,2'b11  : begin
                 en_instr=1'b1;
-                AWdata=pc;
-                ARdata=pc;
+                awaddr=pc;
+                araddr=pc;
                 arprot=3'b100;
             end
 
@@ -252,63 +252,63 @@ module MEMORY_INTERFACE(
                 if(en_read) rd_en=1;
                 arprot=3'b000;
                 en_instr=0;
-                ARdata= rs1+imm;
+                araddr= rs1+imm;
                 case (wordsize)
                     2'b10  : begin
-                        if(enable) align=(ARdata[1:0]==0)? 1:0;
-                        Rdataq=Rdata_mem;
+                        if(enable) align=(araddr[1:0]==0)? 1:0;
+                        rdataq=rdata_mem;
                     end
                     
                     2'b01  : begin
-                        if(enable) align=(ARdata[0]==0)? 1:0;
-                        case (ARdata[1])
+                        if(enable) align=(araddr[0]==0)? 1:0;
+                        case (araddr[1])
                             1'b0: begin 
                                 case (signo) 
-                                    1'b1: relleno16={16{Rdata_mem[15]}};
+                                    1'b1: relleno16={16{rdata_mem[15]}};
                                     1'b0: relleno16=16'd0;
                                 endcase
-                                Rdataq= {relleno16,Rdata_mem[15:0]};
+                                rdataq= {relleno16,rdata_mem[15:0]};
                             end
                             1'b1: begin 
                                 case (signo) 
-                                    1'b1: relleno16={16{Rdata_mem[31]}};
+                                    1'b1: relleno16={16{rdata_mem[31]}};
                                     1'b0: relleno16=16'd0;
                                 endcase
-                                Rdataq = {relleno16,Rdata_mem[31:16]};
+                                rdataq = {relleno16,rdata_mem[31:16]};
                             end
                         endcase
                     end
             
                     2'b00  : begin
                         align=1;
-                        case (ARdata[1:0])
+                        case (araddr[1:0])
                             2'b00:  begin 
                                 case (signo) 
                                     1'b0: relleno24=24'd0;
-                                    1'b1: relleno24={24{Rdata_mem[7]}};
+                                    1'b1: relleno24={24{rdata_mem[7]}};
                                 endcase
-                                Rdataq = {relleno24,Rdata_mem[ 7: 0]}; 
+                                rdataq = {relleno24,rdata_mem[ 7: 0]}; 
                             end
                             2'b01:  begin 
                                 case (signo) 
                                     1'b0: relleno24=24'd0;
-                                    1'b1: relleno24={24{Rdata_mem[15]}};
+                                    1'b1: relleno24={24{rdata_mem[15]}};
                                 endcase 
-                                Rdataq = {relleno24,Rdata_mem[15: 8]}; 
+                                rdataq = {relleno24,rdata_mem[15: 8]}; 
                             end
                             2'b10:  begin 
                                 case (signo) 
                                     1'b0: relleno24=24'd0;
-                                    1'b1: relleno24={24{Rdata_mem[23]}};
+                                    1'b1: relleno24={24{rdata_mem[23]}};
                                 endcase
-                                Rdataq = {relleno24,Rdata_mem[23:16]}; 
+                                rdataq = {relleno24,rdata_mem[23:16]}; 
                             end
                             2'b11:  begin 
                                 case (signo) 
                                     1'b0: relleno24=24'd0;
-                                    1'b1: relleno24={24{Rdata_mem[31]}};
+                                    1'b1: relleno24={24{rdata_mem[31]}};
                                 endcase 
-                                Rdataq = {relleno24,Rdata_mem[31:24]}; 
+                                rdataq = {relleno24,rdata_mem[31:24]}; 
                             end
                         endcase
                     end
@@ -328,12 +328,12 @@ module MEMORY_INTERFACE(
         end else begin 
             Wdata<=Wdataq;
             Wstrb<=Wstrbq;
-            if(en_read) rdu<=Rdataq;
-            if(en_instr && en_read) inst <= Rdata_mem;
+            if(en_read) rdu<=rdataq;
+            if(en_instr && en_read) inst <= rdata_mem;
         end
     end
     
-    assign rd= rd_en?Rdataq:32'bz;
+    assign rd= rd_en?rdataq:32'bz;
          
 
 endmodule
